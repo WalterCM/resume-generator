@@ -3,6 +3,9 @@ MAINTAINER Walter Capa
 
 ENV PYTHONUNBUFFERED 1
 
+RUN apk add --no-cache jpeg-dev zlib-dev
+RUN apk add --no-cache --virtual .build-deps build-base linux-headers
+
 COPY ./requirements.txt /requirements.txt
 RUN pip install -r /requirements.txt
 
