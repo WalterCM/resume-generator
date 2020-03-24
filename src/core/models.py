@@ -48,3 +48,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
+
+    @property
+    def display_name(self):
+        return '{} {}'.format(self.first_name, self.last_name)
