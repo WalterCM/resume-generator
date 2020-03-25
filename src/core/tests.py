@@ -2,10 +2,16 @@ from unittest.mock import patch
 
 from django.test import TestCase
 from django.test import Client
+
 from django.contrib.auth import get_user_model
+
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.urls import reverse
+from django.core.management import call_command
 # from django.core.exceptions import ValidationError
+from django.db.utils import OperationalError
+
+from django.urls import reverse
+
 from rest_framework import status
 
 
@@ -95,3 +101,21 @@ class AdminSiteTests(TestCase):
         res = self.client.get(url)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+
+class CommandTests(TestCase):
+
+    def test_wait_for_db_ready(self):
+        """Testea esperar a la base de datos cuando esta disponible"""
+        with patch('django.db.utils.ConnectionHandler.__getitem__') as gi:
+            gi.return_value = True
+            call_command('wait_for_db')
+            self.assertEqual(gi.call_count, 1)
+
+    @patch('time.sleep', return_value=True)
+    def test_wait_for_db(self, ts):
+        """Testea esperar a la base de datos"""
+        with patch('django.db.utils.ConnectionHandler.__getitem__') as gi:
+            gi.side_effect = [OperationalError] * 5 + [True]
+            call_command('wait_for_db')
+            self.assertEqual(gi.call_count, 6)
