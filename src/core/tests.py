@@ -19,6 +19,8 @@ class UserModelTests(TestCase):
     payload = {
         'email': 'test@mail.com',
         'password': '123456',
+        'first_name': 'Bob',
+        'last_name': 'Marley',
         'cellphone': '+51999999999',
         'photo': SimpleUploadedFile(
             'photo.png', b'file_content', content_type='image/png'

@@ -23,9 +23,9 @@ class PublicTests(TestCase):
     """Testea el API de usuarios (publico)"""
     payload = {
         'email': 'test@mail.com',
+        'password': '123456',
         'first_name': 'Bob',
         'last_name': 'Marley',
-        'password': '123456',
         'cellphone': '+51999999999'
     }
     sample_photo = SimpleUploadedFile(

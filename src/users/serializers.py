@@ -7,7 +7,7 @@ from drf_extra_fields.fields import Base64ImageField
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer para el modelo User"""
-    photo = Base64ImageField()
+    photo = Base64ImageField(required=False)
 
     class Meta:
         model = get_user_model()
@@ -17,6 +17,9 @@ class UserSerializer(serializers.ModelSerializer):
         )
         extra_kwargs = {
             'id': {'read_only': True},
+            'first_name': {'required': False},
+            'last_name': {'required': False},
+            'cellphone': {'required': False},
             'password': {'write_only': True, 'min_length': 6}
         }
 
