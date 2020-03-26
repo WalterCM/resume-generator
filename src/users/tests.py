@@ -13,6 +13,7 @@ from rest_framework import status
 
 
 CREATE_USER_URL = reverse('users:create')
+ME_URL = reverse('users:me')
 
 
 def create_user(**params):
@@ -77,3 +78,34 @@ class PublicTests(TestCase):
             email=payload.get('email')
         )
         self.assertFalse(user_exists)
+
+    def test_retrieve_user_unauthorized(self):
+        """Testea que la autenticacion es requerida"""
+        res = self.client.get(ME_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class PrivateTests(TestCase):
+    """Testea el API de usuarios (privado)"""
+
+    def setUp(self):
+        self.user = create_user(
+            email='test@mail.com',
+            password='123456'
+        )
+
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    def test_retrieve_profile_successful(self):
+        """Testea que un usuario pueda obtener su propia informacion"""
+        res = self.client.get(ME_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+    def test_post_me_not_allowed(self):
+        """Testea que no se pueda usar el metodo post"""
+        res = self.client.post(ME_URL, {})
+
+        self.assertEqual(res.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
