@@ -14,6 +14,8 @@ from django.urls import reverse
 
 from rest_framework import status
 
+from . import models
+
 
 class UserModelTests(TestCase):
     payload = {
@@ -57,6 +59,23 @@ class UserModelTests(TestCase):
 
         self.assertTrue(user.is_superuser)
         self.assertTrue(user.is_staff)
+
+
+class SkillModelTests(TestCase):
+    payload = {
+        'name': 'C++'
+    }
+
+    def test_create_skill_successful(self):
+        """Testea la funcion de modelo, create_skill"""
+        skill = models.Skill.objects.create_skill(**self.payload)
+
+        self.assertEqual(skill.name, self.payload.get('name'))
+
+    def test_create_skill_no_name(self):
+        """Testea que falle si se intenta crear un skill sin nombre"""
+        with self.assertRaises(ValueError):
+            models.Skill.objects.create_skill()
 
 
 class AdminSiteTests(TestCase):

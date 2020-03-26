@@ -65,3 +65,28 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def display_name(self):
         return '{} {}'.format(self.first_name, self.last_name)
+
+
+class SkillManager(models.Manager):
+
+    def create_skill(self, name=None):
+        """Crea y guarda una habilidad"""
+        if not name:
+            raise ValueError('Skill requires a name')
+
+        skill = self.model(name=name)
+        skill.save()
+
+        return skill
+
+
+class Skill(models.Model):
+    name = models.CharField(max_length=255)
+
+    objects = SkillManager()
+
+
+class UserSkill(models.Model):
+    user = models.ForeignKey('User', on_delete=models.CASCADE)
+    skill = models.ForeignKey('Skill', on_delete=models.CASCADE)
+    proficiency = models.SmallIntegerField()
