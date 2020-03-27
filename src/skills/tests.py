@@ -5,8 +5,15 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
 
+from core import models
+
 
 CREATE_SKILL_URL = reverse('skills:create')
+LIST_SKILLS_URL = reverse('skills:list')
+
+
+def create_skill(name):
+    models.Skill.objects.create_skill(name=name)
 
 
 class PublicTests(TestCase):
@@ -18,6 +25,12 @@ class PublicTests(TestCase):
     def test_create_skill_unauthorized(self):
         """Testea que autenticacion sea requerida para crear una habilidad"""
         res = self.client.post(CREATE_SKILL_URL, {})
+
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_list_skills_unauthorized(self):
+        """Testea que autenticacion sea requerida para listar habilidaes"""
+        res = self.client.get(LIST_SKILLS_URL)
 
         self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -41,3 +54,24 @@ class PrivateTests(TestCase):
         res = self.client.post(CREATE_SKILL_URL, self.payload)
 
         self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+
+    def test_non_admin_create_skill_fail(self):
+        """Testea que un no administrador no pueda crear un skill"""
+        user = get_user_model().objects.create_user(
+            email='test@test.com',
+            password='123456'
+        )
+        self.client.force_authenticate(user=user)
+
+        res = self.client.post(CREATE_SKILL_URL, self.payload)
+        self.assertEqual(res.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_list_skills_successful(self):
+        """Testea que se puedan listar las habilidades creadas"""
+        create_skill('C++')
+        create_skill('Python')
+        create_skill('Java')
+
+        res = self.client.get(LIST_SKILLS_URL)
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)

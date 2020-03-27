@@ -81,7 +81,7 @@ class SkillManager(models.Manager):
 
 
 class Skill(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(unique=True, max_length=255)
 
     objects = SkillManager()
 
