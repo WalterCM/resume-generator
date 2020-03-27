@@ -58,6 +58,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
 
+    skills = models.ManyToManyField(
+        'Skill',
+        related_name='skills',
+        through='UserSkill'
+    )
+
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
@@ -65,6 +71,20 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def display_name(self):
         return '{} {}'.format(self.first_name, self.last_name)
+
+    def add_skill(self, skill=None, proficiency=None):
+        if not skill:
+            raise ValueError('You need to pass a skill as argument')
+        if not proficiency:
+            raise ValueError('Proficiency is required')
+
+        user_skill = UserSkill.objects.create(
+            user=self,
+            skill=skill,
+            proficiency=proficiency
+        )
+
+        return user_skill
 
 
 class SkillManager(models.Manager):
@@ -90,6 +110,9 @@ class Skill(models.Model):
 
 
 class UserSkill(models.Model):
-    user = models.ForeignKey('User', on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        'User',
+        on_delete=models.CASCADE,
+    )
     skill = models.ForeignKey('Skill', on_delete=models.CASCADE)
     proficiency = models.SmallIntegerField()

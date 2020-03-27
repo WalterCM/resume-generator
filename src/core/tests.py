@@ -77,6 +77,20 @@ class SkillModelTests(TestCase):
         with self.assertRaises(ValueError):
             models.Skill.objects.create_skill()
 
+    def test_user_add_skill(self):
+        user = get_user_model().objects.create_user(
+            email='test@mail.com',
+            password='123456'
+        )
+        proficiency = 80
+        skill = models.Skill.objects.create_skill(**self.payload)
+        user_skill = user.add_skill(skill, proficiency)
+
+        self.assertTrue(user.skills.filter().exists())
+        self.assertEqual(user_skill.user, user)
+        self.assertEqual(user_skill.skill, skill)
+        self.assertEqual(user_skill.proficiency, proficiency)
+
 
 class AdminSiteTests(TestCase):
     payload = {
