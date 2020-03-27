@@ -68,10 +68,14 @@ class PrivateTests(TestCase):
 
     def test_list_skills_successful(self):
         """Testea que se puedan listar las habilidades creadas"""
-        create_skill('C++')
-        create_skill('Python')
-        create_skill('Java')
+        skills = ['C++', 'Python', 'Java', 'HTML']
+        for skill in skills:
+            create_skill(skill)
 
         res = self.client.get(LIST_SKILLS_URL)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data[0].get('name'), skills[0])
+        self.assertEqual(res.data[1].get('name'), skills[3])
+        self.assertEqual(res.data[2].get('name'), skills[2])
+        self.assertEqual(res.data[3].get('name'), skills[1])

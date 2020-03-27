@@ -85,6 +85,9 @@ class Skill(models.Model):
 
     objects = SkillManager()
 
+    class Meta:
+        ordering = ['name']
+
 
 class UserSkill(models.Model):
     user = models.ForeignKey('User', on_delete=models.CASCADE)
