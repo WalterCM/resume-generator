@@ -5,9 +5,9 @@ from django.test import Client
 
 from django.contrib.auth import get_user_model
 
+from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
-# from django.core.exceptions import ValidationError
 from django.db.utils import OperationalError
 
 from django.urls import reverse
@@ -90,6 +90,80 @@ class SkillModelTests(TestCase):
         self.assertEqual(user_skill.user, user)
         self.assertEqual(user_skill.skill, skill)
         self.assertEqual(user_skill.proficiency, proficiency)
+
+
+class JobExperienceModelTests(TestCase):
+    payload = {
+        'title': 'Administrador',
+        'company': 'ADP',
+        'start_date': '2019-09-02',
+        'end_date': '2019-12-24'
+    }
+
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            email='testuser@mail.com',
+            password='123456'
+        )
+
+    def test_add_job_succesful(self):
+        """Testea la funcion de modelo, create_job"""
+        job = self.user.add_job(**self.payload)
+
+        self.assertEqual(job.title, self.payload.get('title'))
+        self.assertEqual(job.company, self.payload.get('company'))
+
+    def test_create_job_no_title(self):
+        """Testea que se pueda crear un trabajo sin titulo"""
+        payload = self.payload.copy()
+        del payload['title']
+
+        job = self.user.add_job(**payload)
+
+        self.assertEqual(job.company, payload.get('company'))
+
+    def test_create_job_no_company_fail(self):
+        """Testea que no se pueda crear un trabajo sin company"""
+        payload = self.payload.copy()
+        del payload['company']
+
+        with self.assertRaises(ValueError):
+            self.user.add_job(**payload)
+
+    def test_create_job_no_start_date_fail(self):
+        """Testea que se pueda crear un trabajo sin start_date"""
+        payload = self.payload.copy()
+        del payload['start_date']
+
+        with self.assertRaises(ValueError):
+            self.user.add_job(**payload)
+
+    def test_create_job_no_end_date_fail(self):
+        """Testea que se pueda crear un trabajo sin end_date"""
+        payload = self.payload.copy()
+        del payload['end_date']
+
+        with self.assertRaises(ValueError):
+            self.user.add_job(**payload)
+
+    def test_create_job_to_present_day(self):
+        """Testea que presente pueda ser fecha final"""
+        payload = self.payload.copy()
+        del payload['end_date']
+        payload['present_day'] = True
+
+        job = self.user.add_job(**payload)
+
+        self.assertEqual(job.title, self.payload.get('title'))
+        self.assertEqual(job.company, self.payload.get('company'))
+
+    def test_create_job_end_date_before_start_date_fail(self):
+        """Testea que no se pueda crear un trabajo con el end_date antes"""
+        payload = self.payload.copy()
+        payload['start_date'] = '2020-09-02'
+
+        with self.assertRaises(ValidationError):
+            self.user.add_job(**payload)
 
 
 class AdminSiteTests(TestCase):

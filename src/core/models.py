@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
@@ -78,13 +79,41 @@ class User(AbstractBaseUser, PermissionsMixin):
         if not proficiency:
             raise ValueError('Proficiency is required')
 
-        user_skill = UserSkill.objects.create(
+        user_skill = UserSkill(
             user=self,
             skill=skill,
             proficiency=proficiency
         )
 
+        user_skill.save()
+
         return user_skill
+
+    def add_job(self, title='', company=None, start_date=None,
+                end_date=None, present_day=False):
+        if not company:
+            raise ValueError('Job requires company')
+        if not start_date:
+            raise ValueError('Job requires a start date')
+        if not present_day:
+            if not end_date:
+                raise ValueError('Job requires an end date')
+
+            if end_date < start_date:
+                raise ValidationError('Start date should be before end date')
+
+        job = Job(
+            title=title,
+            company=company,
+            start_date=start_date,
+            end_date=end_date,
+            present_day=present_day,
+            user=self
+        )
+
+        job.save()
+
+        return job
 
 
 class SkillManager(models.Manager):
@@ -116,3 +145,16 @@ class UserSkill(models.Model):
     )
     skill = models.ForeignKey('Skill', on_delete=models.CASCADE)
     proficiency = models.SmallIntegerField()
+
+
+class Job(models.Model):
+    title = models.CharField(max_length=255, blank=True)
+    company = models.CharField(max_length=255)
+    start_date = models.DateField()
+    end_date = models.DateField(null=True, blank=True)
+    present_day = models.BooleanField(default=False)
+    user = models.ForeignKey(
+        'User',
+        on_delete=models.CASCADE,
+        related_name='jobs'
+    )
